@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_user_rating_ratings",
+  "info": {
+    "displayName": "rating",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "userRating": {
+      "type": "integer",
+      "max": 10,
+      "min": 0,
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

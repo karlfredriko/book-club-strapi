@@ -1,0 +1,81 @@
+header {
+  display: flex;
+  justify-content: space-between;
+}
+header button {
+  align-self: center;
+  margin-right: 4rem;
+  all: unset;
+}
+header button:hover {
+  cursor: pointer;
+}
+.hidden {
+  display: none;
+}
+main {
+  display: flex;
+  flex-wrap: wrap;
+}
+.book-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  max-width: 400px;
+  max-height: 450px;
+  padding: 1rem;
+  border: solid black 1px;
+}
+.book-card > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.book-title {
+  flex-wrap: wrap;
+}
+.book-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+/* MODAL */
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 20%; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+/* Modal Content */
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 2rem;
+  width: 60%;
+  box-shadow: 8px 10px 5px -2px rgba(0, 0, 0, 0.9);
+}
+.modal-content div {
+  display: flex;
+  justify-content: space-between;
+}
+.modal-content button {
+  height: fit-content;
+  align-self: flex-start;
+}
+.modal-content input {
+  margin-bottom: 1rem;
+}
+.msg {
+  margin: 0;
+}
