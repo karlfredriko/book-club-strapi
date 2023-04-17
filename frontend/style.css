@@ -91,6 +91,14 @@ main {
   margin: 0;
   margin-bottom: 1rem;
 }
+.affirmation {
+  margin: 0;
+  font-size: large;
+}
+.affirmation + p {
+  margin-bottom: 0;
+  text-align: center;
+}
 .modal-content div {
   display: flex;
   justify-content: space-between;

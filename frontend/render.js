@@ -1,4 +1,5 @@
 import { authGet, noAuthFetch, authPut } from "./api-functions.js";
+import { affirmationModal } from "./modals.js";
 
 let loginBtn = document.querySelector("#login");
 let logoutBtn = document.querySelector("#logout");
@@ -14,19 +15,50 @@ let getAverageRating = (arr) => {
   let total = 0;
   let average = 0;
   arr.forEach((rating) => {
-    let { userRating } = rating.attributes;
-    total += userRating;
+    if (rating.attributes) {
+      let { userRating } = rating.attributes;
+      total += userRating;
+    } else {
+      total += rating.userRating;
+    }
   });
   return (average = total / arr.length).toFixed(1);
 };
 
-let usersRatedBooks = (arr) => {
-  let ratedArr = [];
-  arr.forEach((element) => {
-    if (element.attributes.includes(sessionStorage.getItem("user"))) {
-    }
-  });
+export let checkForRating = (arr) => {
+  let articles = document.querySelectorAll("article");
+  for (let i = 0; i < articles.length; i++) {
+    arr.forEach((rating) => {
+      if (articles[i].id === `id${rating.book.id}`) {
+        let { book, userRating } = rating;
+        console.log("MATCH");
+        let option = document.querySelector(`#opt${book.id}val${userRating}`);
+        option.selected = true;
+      }
+    });
+  }
 };
+
+export let createRatingMenu = (element, id) => {
+  let select = document.createElement("select");
+  select.style.pointerEvents = "all";
+  select.id = `select${id}`;
+  select.innerHTML = `
+    <option selected hidden>Välj betyg</option>
+    <option id="opt${id}val1">1</option>
+    <option id="opt${id}val2">2</option>
+    <option id="opt${id}val3">3</option>
+    <option id="opt${id}val4">4</option>
+    <option id="opt${id}val5">5</option>
+    <option id="opt${id}val6">6</option>
+    <option id="opt${id}val7">7</option>
+    <option id="opt${id}val8">8</option>
+    <option id="opt${id}val9">9</option>
+    <option id="opt${id}val10">10</option>
+    `;
+  element.append(select);
+};
+
 export let createBookCard = (
   id,
   title,
@@ -36,7 +68,8 @@ export let createBookCard = (
   releaseDate,
   url,
   altText,
-  clickable
+  clickable,
+  rateable
 ) => {
   let article = document.createElement("article");
   article.classList = "book-card";
@@ -45,7 +78,7 @@ export let createBookCard = (
     <h2 class="book-title">${title}</h2>
       <div>
         <div class="book-info">
-          <div>
+          <div id="div${id}">
             <h3>${author}</h3>
             <h3>${rating}</h3>
           </div>
@@ -58,17 +91,28 @@ export let createBookCard = (
       </div>
       `;
   main.append(article);
+  if (rateable) {
+    let div = document.querySelector(`#div${id}`);
+    createRatingMenu(div, id);
+  }
   if (clickable) {
-    article.onclick = (e) => {
+    article.onclick = async (e) => {
       if (e.target.id.includes("id") && sessionStorage.getItem("user")) {
-        let id = e.target.id.slice(-1);
-        console.log(`the book id is: ${id}`);
+        let url = `/api/books/${e.target.id.slice(2)}`;
+        let data = {
+          user: sessionStorage.getItem("userId"),
+        };
+        console.log("url", url);
+        console.log("data", data);
+        await authPut(url, data);
+        affirmationModal(title);
+        modal.style.display = "block";
       }
     };
   }
 };
 
-export let printBooks = (arr, clickable) => {
+export let printBooks = (arr, clickable, rateable) => {
   main.innerHTML = "";
   let rating = "Inte Betygsatt";
   if (arr[0].attributes) {
@@ -90,7 +134,8 @@ export let printBooks = (arr, clickable) => {
         releaseDate,
         url,
         alternativeText,
-        clickable
+        clickable,
+        rateable
       );
     });
   } else {
@@ -110,7 +155,8 @@ export let printBooks = (arr, clickable) => {
         releaseDate,
         url,
         alternativeText,
-        clickable
+        clickable,
+        rateable
       );
     });
   }
@@ -128,17 +174,18 @@ export let userLoggedIn = async () => {
 
 allBooks.addEventListener("click", async () => {
   let books = await noAuthFetch("/api/books?populate=deep");
-  printBooks(books.data, true);
+  printBooks(books.data, true, false);
 });
 
 myBooks.addEventListener("click", async () => {
-  let myBooks = await authGet("/api/users/me?populate=deep");
-  console.log("my books", myBooks.books);
-  printBooks(myBooks.books);
+  let userInfo = await authGet("/api/users/me?populate=deep");
+  console.log("my books", userInfo.books);
+  console.log("ratings", userInfo.ratings);
+  printBooks(userInfo.books, false, true);
+  checkForRating(userInfo.ratings);
 });
 
 export let renderPage = async () => {
-  // await noAuthFetch("/api/users?populate=deep", "data");
   if (sessionStorage.getItem("user")) {
     console.log("user logged in");
     userLoggedIn();

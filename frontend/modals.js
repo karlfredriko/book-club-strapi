@@ -35,7 +35,7 @@ export let loginModal = () => {
       console.log("soon login");
       setTimeout(() => {
         modal.remove();
-      }, 2000);
+      }, 3000);
       renderPage();
     } catch (err) {
       message.innerText = `Error: ${err} \nVänligen försök igen.`;
@@ -82,10 +82,27 @@ export let createUserModal = () => {
       )}, inlogg skapas och du loggas in..`;
       setTimeout(() => {
         modal.remove();
-      }, 2000);
+      }, 3000);
       renderPage();
     } catch (err) {
       message.innerText = `Error: ${err} \nVänligen försök igen.`;
     }
   });
+};
+
+export let affirmationModal = (title) => {
+  let div = document.createElement("div");
+  div.id = "modal";
+  div.classList = "modal";
+  div.innerHTML = `
+  <div class="modal-content">
+    <p class="affirmation">${title}</p>
+    <p>sparad till "Mina böcker"</p>
+  </div>
+  `;
+  main.prepend(div);
+  let modal = document.querySelector("#modal");
+  setTimeout(() => {
+    modal.remove();
+  }, 2000);
 };

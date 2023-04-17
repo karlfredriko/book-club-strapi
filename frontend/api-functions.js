@@ -15,10 +15,10 @@ export let authGet = async (url) => {
 };
 
 export let authPut = async (url, data) => {
-  let response = await axios.get(
+  let response = await axios.put(
     `${BASE_API}${url}`,
     {
-      data,
+      data: data,
     },
     {
       headers: {
@@ -26,7 +26,8 @@ export let authPut = async (url, data) => {
       },
     }
   );
-  return response.data;
+  console.log(response);
+  // return response.data;
 };
 
 export let apiLogin = async (url, username, password) => {
