@@ -11,11 +11,25 @@
   </head>
   <body>
     <header>
-      <h1>Bookclub</h1>
-      <button id="login">Logga in</button>
-      <button id="logout" class="hidden">Logga ut</button>
+      <div class="header-container">
+        <h1>Bookclub</h1>
+        <h2 id="displayUser"></h2>
+      </div>
+      <hr />
+      <div class="nav-container">
+        <nav id="userFeatures" class="hidden">
+          <button id="allBooks">Alla böcker</button>
+          <button id="myBooks">Mina böcker</button>
+          <button id="myRatedBooks">Betygsatta böcker</button>
+        </nav>
+        <nav id="loginFeatures" class="fit">
+          <button id="login">Logga in</button>
+          <button id="createUser">Skapa användare?</button>
+          <button id="logout" class="none">Logga ut</button>
+        </nav>
+      </div>
+      <hr />
     </header>
-    <hr />
     <main></main>
   </body>
 </html>

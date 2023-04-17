@@ -35,16 +35,17 @@
         "audios"
       ]
     },
-    "userRating": {
-      "type": "component",
-      "repeatable": true,
-      "component": "user-rating.rating"
-    },
-    "users": {
+    "ratings": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "plugin::users-permissions.user",
+      "target": "api::rating.rating",
       "mappedBy": "book"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "books"
     }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "kind": "singleType",
+  "collectionName": "booklists",
+  "info": {
+    "singularName": "booklist",
+    "pluralName": "booklists",
+    "displayName": "booklist"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "books": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::book.book"
+    }
+  }
+}
