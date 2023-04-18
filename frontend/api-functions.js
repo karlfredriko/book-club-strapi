@@ -1,5 +1,9 @@
 const BASE_API = "http://localhost:1337";
 
+// SORTING
+//http://localhost:1337/api/books?sort=author
+//http://localhost:1337/api/books?sort=title
+
 export let noAuthFetch = async (url) => {
   let response = await axios.get(`${BASE_API}${url}`);
   return response.data;
@@ -12,6 +16,21 @@ export let authGet = async (url) => {
     },
   });
   return response.data;
+};
+
+export let authPost = async (url, data) => {
+  let response = await axios.post(
+    `${BASE_API}${url}`,
+    {
+      data: data,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+      },
+    }
+  );
+  console.log(response);
 };
 
 export let authPut = async (url, data) => {

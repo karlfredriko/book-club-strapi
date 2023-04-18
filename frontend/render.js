@@ -1,4 +1,4 @@
-import { authGet, noAuthFetch, authPut } from "./api-functions.js";
+import { authGet, noAuthFetch, authPut, authPost } from "./api-functions.js";
 import { affirmationModal } from "./modals.js";
 
 let loginBtn = document.querySelector("#login");
@@ -9,7 +9,68 @@ let myBooks = document.querySelector("#myBooks");
 let myRatedBooks = document.querySelector("#myRatedBooks");
 let userFeatures = document.querySelector("#userFeatures");
 let displayUser = document.querySelector("#displayUser");
+let header = document.querySelector("header");
 let main = document.querySelector("main");
+
+let checkForSortingMenu = () => {
+  if (document.querySelector("#sortingMenu")) {
+    document.querySelector("#sortingMenu").remove();
+  }
+};
+
+let updateAverageRating = async (bookId, element) => {
+  let result = await authGet(`/api/books/${bookId}?populate=ratings`);
+  let newRating = getAverageRating(result.data.attributes.ratings.data);
+  element.innerText = newRating;
+};
+
+// const qs = require("qs");
+// const query = qs.stringify(
+//   {
+//     populate: {
+//       categories: {
+//         sort: ["name:asc"],
+//         filters: {
+//           name: {
+//             $eq: "Cars",
+//           },
+//         },
+//       },
+//     },
+//   },
+//   {
+//     encodeValuesOnly: true, // prettify URL
+//   }
+// );
+
+// console.log("my query", query);
+
+let createSortingMenu = () => {
+  if (!document.querySelector("#sortingMenu")) {
+    let select = document.createElement("select");
+    select.id = "sortingMenu";
+    select.innerHTML = `
+        <option value="default" selected hidden>Sortera lista</option>
+        <option value="/api/users/me?populate[books][sort][0]=author">Författare</option>
+        <option value="/api/users/me?populate[books][sort][0]=title">Titel</option>
+        <option value="rating">Ditt betyg</option>
+    `;
+    userFeatures.append(select);
+  } else {
+    let select = document.querySelectorAll("#sortingMenu option");
+    select.forEach((option) => {
+      if (option.value === "default") {
+        option.selected = "true";
+      }
+    });
+  }
+  let menu = document.querySelector("#sortingMenu");
+  menu.addEventListener("change", async (e) => {
+    let data = await authGet(menu.value);
+    console.log(data.books);
+    printBooks(data.books, false, true);
+  });
+};
 
 let getAverageRating = (arr) => {
   let total = 0;
@@ -31,7 +92,6 @@ export let checkForRating = (arr) => {
     arr.forEach((rating) => {
       if (articles[i].id === `id${rating.book.id}`) {
         let { book, userRating } = rating;
-        console.log("MATCH");
         let option = document.querySelector(`#opt${book.id}val${userRating}`);
         option.selected = true;
       }
@@ -43,20 +103,44 @@ export let createRatingMenu = (element, id) => {
   let select = document.createElement("select");
   select.style.pointerEvents = "all";
   select.id = `select${id}`;
-  select.innerHTML = `
-    <option selected hidden>Välj betyg</option>
-    <option id="opt${id}val1">1</option>
-    <option id="opt${id}val2">2</option>
-    <option id="opt${id}val3">3</option>
-    <option id="opt${id}val4">4</option>
-    <option id="opt${id}val5">5</option>
-    <option id="opt${id}val6">6</option>
-    <option id="opt${id}val7">7</option>
-    <option id="opt${id}val8">8</option>
-    <option id="opt${id}val9">9</option>
-    <option id="opt${id}val10">10</option>
-    `;
+  select.innerHTML = "<option selected hidden>Välj betyg</option>";
+  for (let i = 1; i < 11; i++) {
+    let option = document.createElement("option");
+    option.id = `opt${id}val${i}`;
+    option.innerText = `${i}`;
+    select.append(option);
+  }
   element.append(select);
+  select.addEventListener("change", async (e) => {
+    let ratingExists = false;
+    let ratingId = "";
+    let data = await authGet("/api/users/me?populate=deep");
+    console.log(data);
+    data.ratings.forEach((rating) => {
+      if (rating.book.id === id) {
+        ratingExists = true;
+        ratingId = rating.id;
+        return ratingExists;
+      }
+    });
+    console.log("rating?", ratingExists);
+    if (ratingExists) {
+      console.log("update rating");
+      let data = {
+        userRating: e.target.value,
+      };
+      await authPut(`/api/ratings/${ratingId}`, data);
+    } else {
+      console.log("create rating");
+      let data = {
+        userRating: e.target.value,
+        book: id,
+        user: sessionStorage.getItem("userId"),
+      };
+      await authPost("/api/ratings", data);
+    }
+    await updateAverageRating(id, document.querySelector(`#rating${id}`));
+  });
 };
 
 export let createBookCard = (
@@ -80,7 +164,7 @@ export let createBookCard = (
         <div class="book-info">
           <div id="div${id}">
             <h3>${author}</h3>
-            <h3>${rating}</h3>
+            <h3 id="rating${id}">${rating}</h3>
           </div>
           <div>
             <h4>${totalPages} pages</h4>
@@ -114,9 +198,9 @@ export let createBookCard = (
 
 export let printBooks = (arr, clickable, rateable) => {
   main.innerHTML = "";
-  let rating = "Inte Betygsatt";
   if (arr[0].attributes) {
     arr.forEach((element) => {
+      let rating = "Inte Betygsatt";
       console.log("book", element);
       let { data } = element.attributes.ratings;
       let { author, title, releaseDate, totalPages } = element.attributes;
@@ -140,6 +224,7 @@ export let printBooks = (arr, clickable, rateable) => {
     });
   } else {
     arr.forEach((element) => {
+      let rating = "Inte Betygsatt";
       let { ratings } = element;
       let { author, title, releaseDate, totalPages } = element;
       let { url, alternativeText } = element.coverImage;
@@ -175,6 +260,7 @@ export let userLoggedIn = async () => {
 allBooks.addEventListener("click", async () => {
   let books = await noAuthFetch("/api/books?populate=deep");
   printBooks(books.data, true, false);
+  checkForSortingMenu();
 });
 
 myBooks.addEventListener("click", async () => {
@@ -183,6 +269,19 @@ myBooks.addEventListener("click", async () => {
   console.log("ratings", userInfo.ratings);
   printBooks(userInfo.books, false, true);
   checkForRating(userInfo.ratings);
+  checkForSortingMenu();
+});
+
+myRatedBooks.addEventListener("click", async () => {
+  let userInfo = await authGet("/api/users/me?populate=deep");
+  console.log("ratings", userInfo.ratings);
+  let ratedBooks = [];
+  userInfo.ratings.forEach((rating) => {
+    ratedBooks.push(rating.book);
+  });
+  printBooks(ratedBooks, false, true);
+  checkForRating(userInfo.ratings);
+  createSortingMenu();
 });
 
 export let renderPage = async () => {
