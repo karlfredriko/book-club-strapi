@@ -18,32 +18,35 @@ let checkForSortingMenu = () => {
   }
 };
 
+let sorter = (arr, property) => {
+  let sortedArray;
+  return (sortedArray = arr.sort((a, b) => {
+    const propA = a[property].toUpperCase();
+    const propB = b[property].toUpperCase();
+    if (propA < propB) {
+      return -1;
+    }
+    if (propA > propB) {
+      return 1;
+    }
+    return 0;
+  }));
+};
+
+// let tester = async () => {
+//   let response = await authGet("/api/users/me?populate=books.coverImage");
+//   let sortedByTitle = sorter(response.books, "author");
+//   console.log(sortedByTitle);
+// };
+// document.onclick = () => {
+//   tester();
+// };
+
 let updateAverageRating = async (bookId, element) => {
   let result = await authGet(`/api/books/${bookId}?populate=ratings`);
   let newRating = getAverageRating(result.data.attributes.ratings.data);
   element.innerText = newRating;
 };
-
-// const qs = require("qs");
-// const query = qs.stringify(
-//   {
-//     populate: {
-//       categories: {
-//         sort: ["name:asc"],
-//         filters: {
-//           name: {
-//             $eq: "Cars",
-//           },
-//         },
-//       },
-//     },
-//   },
-//   {
-//     encodeValuesOnly: true, // prettify URL
-//   }
-// );
-
-// console.log("my query", query);
 
 let createSortingMenu = () => {
   if (!document.querySelector("#sortingMenu")) {
@@ -51,8 +54,8 @@ let createSortingMenu = () => {
     select.id = "sortingMenu";
     select.innerHTML = `
         <option value="default" selected hidden>Sortera lista</option>
-        <option value="/api/users/me?populate[books][sort][0]=author">Författare</option>
-        <option value="/api/users/me?populate[books][sort][0]=title">Titel</option>
+        <option value="author">Författare</option>
+        <option value="title">Titel</option>
         <option value="rating">Ditt betyg</option>
     `;
     userFeatures.append(select);
@@ -66,9 +69,15 @@ let createSortingMenu = () => {
   }
   let menu = document.querySelector("#sortingMenu");
   menu.addEventListener("change", async (e) => {
-    let data = await authGet(menu.value);
-    console.log(data.books);
-    printBooks(data.books, false, true);
+    if (menu.value === "title" || "author") {
+      let data = await authGet("/api/users/me?populate=deep");
+      let sortedArray = sorter(data.books, menu.value);
+      let finalArray = sortedArray.filter(
+        (objekt) => objekt.ratings.length > 0
+      );
+      printBooks(finalArray, false, true);
+      checkForRating(data.ratings);
+    }
   });
 };
 
