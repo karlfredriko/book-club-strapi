@@ -1,7 +1,15 @@
-import { noAuthFetch, apiLogin, createUser } from "./api-functions.js";
+import { apiLogin, createUser } from "./api-functions.js";
 import { renderPage } from "./render.js";
 
 let main = document.querySelector("main");
+
+//CLOSE MODALS
+window.onclick = (event) => {
+  let modal = document.querySelector("#modal");
+  if (event.target === modal) {
+    modal.remove();
+  }
+};
 
 export let loginModal = () => {
   //CREATES MODAL

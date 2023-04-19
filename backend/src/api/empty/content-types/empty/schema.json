@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "empties",
+  "info": {
+    "singularName": "empty",
+    "pluralName": "empties",
+    "displayName": "empty"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "meme": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false,
+      "required": true
+    }
+  }
+}

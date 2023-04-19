@@ -1,3 +1,10 @@
+:root {
+  --background: white;
+  --font: rgb(0, 0, 0);
+  background: var(--background);
+  color: var(--font);
+}
+
 .header-container {
   display: flex;
   justify-content: space-between;
@@ -20,10 +27,6 @@ header button:hover {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.2);
 }
-/* nav:last-of-type {
-  display: flex;
-  justify-content: flex-end;
-} */
 .none {
   display: none;
 }
@@ -61,6 +64,9 @@ main {
   flex-direction: column;
   justify-content: space-between;
 }
+.empty {
+  margin-top: 150px;
+}
 
 /* MODAL */
 /* The Modal (background) */
@@ -81,7 +87,7 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  background-color: #fefefe;
+  background: var(--background);
   margin: auto;
   padding: 2rem;
   width: 300px;
@@ -106,10 +112,13 @@ main {
 .modal-content button {
   height: fit-content;
   align-self: flex-start;
+  color: var(--font);
 }
 .modal-content input {
   margin-bottom: 1rem;
+  color: var(--font);
 }
 .msg {
   margin: 0 0.5rem 0 0;
+  width: 210px;
 }

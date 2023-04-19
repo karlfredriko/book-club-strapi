@@ -1,4 +1,4 @@
-import { authGet, noAuthFetch, authPut, authPost } from "./api-functions.js";
+import { authGet, noAuthGet, authPut, authPost } from "./api-functions.js";
 import { affirmationModal } from "./modals.js";
 
 let loginBtn = document.querySelector("#login");
@@ -9,8 +9,27 @@ let myBooks = document.querySelector("#myBooks");
 let myRatedBooks = document.querySelector("#myRatedBooks");
 let userFeatures = document.querySelector("#userFeatures");
 let displayUser = document.querySelector("#displayUser");
-let header = document.querySelector("header");
 let main = document.querySelector("main");
+
+let checkTheme = async () => {
+  let response = await noAuthGet("/api/theme");
+  let r = document.querySelector(":root");
+  let { color } = response.data.attributes;
+  if (color === "blue") {
+    r.style.setProperty("--background", "#f0ffff");
+    r.style.setProperty("--font", "#144db8");
+  } else if (color === "brownish") {
+    r.style.setProperty("--background", "#ffc99a");
+    r.style.setProperty("--font", "#7a0a0a");
+  } else if (color === "crazy") {
+    r.style.setProperty(
+      "--background",
+      "linear-gradient(red, yellow 30%, red)"
+    );
+    r.style.setProperty("--font", "#520000");
+  }
+};
+checkTheme();
 
 let checkForSortingMenu = () => {
   if (document.querySelector("#sortingMenu")) {
@@ -18,7 +37,7 @@ let checkForSortingMenu = () => {
   }
 };
 
-let sorter = (arr, property) => {
+let sortingWords = (arr, property) => {
   let sortedArray;
   return (sortedArray = arr.sort((a, b) => {
     const propA = a[property].toUpperCase();
@@ -32,15 +51,6 @@ let sorter = (arr, property) => {
     return 0;
   }));
 };
-
-// let tester = async () => {
-//   let response = await authGet("/api/users/me?populate=books.coverImage");
-//   let sortedByTitle = sorter(response.books, "author");
-//   console.log(sortedByTitle);
-// };
-// document.onclick = () => {
-//   tester();
-// };
 
 let updateAverageRating = async (bookId, element) => {
   let result = await authGet(`/api/books/${bookId}?populate=ratings`);
@@ -56,7 +66,7 @@ let createSortingMenu = () => {
         <option value="default" selected hidden>Sortera lista</option>
         <option value="author">Författare</option>
         <option value="title">Titel</option>
-        <option value="rating">Ditt betyg</option>
+        <option value="userRating">Ditt betyg</option>
     `;
     userFeatures.append(select);
   } else {
@@ -69,19 +79,30 @@ let createSortingMenu = () => {
   }
   let menu = document.querySelector("#sortingMenu");
   menu.addEventListener("change", async (e) => {
-    if (menu.value === "title" || "author") {
-      let data = await authGet("/api/users/me?populate=deep");
-      let sortedArray = sorter(data.books, menu.value);
+    let data = await authGet("/api/users/me?populate=deep");
+    if (e.target.value === "title" || e.target.value === "author") {
+      console.log("im here", e.target.value);
+      let sortedArray = sortingWords(data.books, e.target.value);
       let finalArray = sortedArray.filter(
         (objekt) => objekt.ratings.length > 0
       );
       printBooks(finalArray, false, true);
-      checkForRating(data.ratings);
+    } else if (e.target.value === "userRating") {
+      let sortedArray = data.ratings.sort(
+        (a, b) => b.userRating - a.userRating
+      );
+      console.log("sortedArray", sortedArray);
+      let newArray = [];
+      sortedArray.forEach((i) => {
+        newArray.push(i.book);
+      });
+      printBooks(newArray, false, true);
     }
+    checkForRating(data.ratings);
   });
 };
 
-let getAverageRating = (arr) => {
+export let getAverageRating = (arr) => {
   let total = 0;
   let average = 0;
   arr.forEach((rating) => {
@@ -205,6 +226,15 @@ export let createBookCard = (
   }
 };
 
+export let isEmpty = async () => {
+  main.innerHTML = "";
+  let response = await authGet("/api/empty?populate=deep");
+  console.log(response.data.attributes.meme.data.attributes);
+  let { url, alternativeText } = response.data.attributes.meme.data.attributes;
+  main.innerHTML = `
+      <img src="http://localhost:1337${url}" alt="${alternativeText}" style="height: 600px">`;
+};
+
 export let printBooks = (arr, clickable, rateable) => {
   main.innerHTML = "";
   if (arr[0].attributes) {
@@ -262,35 +292,43 @@ export let userLoggedIn = async () => {
   logoutBtn.classList = "";
   userFeatures.classList = "";
   displayUser.innerText = `${sessionStorage.getItem("user")}`;
-  let books = await noAuthFetch("/api/books?populate=deep");
+  let books = await noAuthGet("/api/books?populate=deep");
   printBooks(books.data, true);
 };
 
 allBooks.addEventListener("click", async () => {
-  let books = await noAuthFetch("/api/books?populate=deep");
+  let books = await noAuthGet("/api/books?populate=deep");
   printBooks(books.data, true, false);
   checkForSortingMenu();
 });
 
 myBooks.addEventListener("click", async () => {
   let userInfo = await authGet("/api/users/me?populate=deep");
-  console.log("my books", userInfo.books);
-  console.log("ratings", userInfo.ratings);
-  printBooks(userInfo.books, false, true);
-  checkForRating(userInfo.ratings);
-  checkForSortingMenu();
+  if (userInfo.books.length === 0) {
+    isEmpty();
+  } else {
+    console.log("my books", userInfo.books);
+    console.log("ratings", userInfo.ratings);
+    printBooks(userInfo.books, false, true);
+    checkForRating(userInfo.ratings);
+    checkForSortingMenu();
+  }
 });
 
 myRatedBooks.addEventListener("click", async () => {
   let userInfo = await authGet("/api/users/me?populate=deep");
-  console.log("ratings", userInfo.ratings);
-  let ratedBooks = [];
-  userInfo.ratings.forEach((rating) => {
-    ratedBooks.push(rating.book);
-  });
-  printBooks(ratedBooks, false, true);
-  checkForRating(userInfo.ratings);
-  createSortingMenu();
+  if (userInfo.ratings.length === 0) {
+    isEmpty();
+  } else {
+    console.log("ratings", userInfo.ratings);
+    let ratedBooks = [];
+    userInfo.ratings.forEach((rating) => {
+      ratedBooks.push(rating.book);
+    });
+    printBooks(ratedBooks, false, true);
+    checkForRating(userInfo.ratings);
+    createSortingMenu();
+  }
 });
 
 export let renderPage = async () => {
@@ -304,7 +342,7 @@ export let renderPage = async () => {
     logoutBtn.classList = "none";
     userFeatures.classList = "hidden";
     displayUser.innerText = "";
-    let books = await noAuthFetch("/api/books?populate=deep");
+    let books = await noAuthGet("/api/books?populate=deep");
     printBooks(books.data);
   }
 };

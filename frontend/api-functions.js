@@ -4,7 +4,7 @@ const BASE_API = "http://localhost:1337";
 //http://localhost:1337/api/books?sort=author
 //http://localhost:1337/api/books?sort=title
 
-export let noAuthFetch = async (url) => {
+export let noAuthGet = async (url) => {
   let response = await axios.get(`${BASE_API}${url}`);
   return response.data;
 };

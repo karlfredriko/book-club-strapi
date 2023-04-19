@@ -4,7 +4,8 @@
   "info": {
     "singularName": "theme",
     "pluralName": "themes",
-    "displayName": "theme"
+    "displayName": "theme",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -15,9 +16,12 @@
       "type": "enumeration",
       "enum": [
         "default",
-        "other"
+        "blue",
+        "brownish",
+        "crazy"
       ],
-      "required": true
+      "required": true,
+      "default": "default"
     }
   }
 }
