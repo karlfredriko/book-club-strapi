@@ -113,7 +113,7 @@ export let getAverageRating = (arr) => {
       total += rating.userRating;
     }
   });
-  return (average = total / arr.length).toFixed(1);
+  return `${(average = total / arr.length).toFixed(1)} / 10`;
 };
 
 export let checkForRating = (arr) => {
