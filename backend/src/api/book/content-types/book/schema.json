@@ -41,11 +41,11 @@
       "target": "api::rating.rating",
       "mappedBy": "book"
     },
-    "user": {
+    "users": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
-      "inversedBy": "books"
+      "mappedBy": "books"
     }
   }
 }

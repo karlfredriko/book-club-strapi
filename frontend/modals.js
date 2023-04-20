@@ -98,14 +98,14 @@ export let createUserModal = () => {
   });
 };
 
-export let affirmationModal = (title) => {
+export let affirmationModal = (title, msg) => {
   let div = document.createElement("div");
   div.id = "modal";
   div.classList = "modal";
   div.innerHTML = `
   <div class="modal-content">
     <p class="affirmation">${title}</p>
-    <p>sparad till "Mina böcker"</p>
+    <p>${msg} "Mina böcker"</p>
   </div>
   `;
   main.prepend(div);

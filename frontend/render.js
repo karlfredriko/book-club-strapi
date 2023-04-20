@@ -212,18 +212,40 @@ export let createBookCard = (
   if (clickable) {
     article.onclick = async (e) => {
       if (e.target.id.includes("id") && sessionStorage.getItem("user")) {
-        let url = `/api/books/${e.target.id.slice(2)}`;
-        let data = {
-          user: sessionStorage.getItem("userId"),
-        };
-        console.log("url", url);
-        console.log("data", data);
-        await authPut(url, data);
-        affirmationModal(title);
+        let url = `/api/books/${e.target.id.slice(2)}?populate=users`;
+        let response = await authGet(url);
+        let { data } = response.data.attributes.users;
+        let includes = false;
+        data.forEach((i) =>
+          i.id === +sessionStorage.getItem("userId") ? (includes = true) : null
+        );
+        if (!includes) {
+          let idArr = createIdArr(data);
+          let body = {
+            users: idArr,
+          };
+          await authPut(url, body);
+          affirmationModal(title, "Har sparats till");
+        } else {
+          affirmationModal(title, "Finns redan i");
+        }
         modal.style.display = "block";
       }
     };
   }
+};
+// -----------BUGGFIX----------
+//NÄR ANVÄNDAREN SPARAR BÖCKER TILL SIN BOKLISTA, SKRIVS ANDRA ANVÄNDARE ÖVER.
+
+//NU HÄMTAS FÖRST ALLA ANVÄNDARE OCH SEN I createIdArr() SKAPAS EN ARRAY.
+//ANVÄNDARENS ID SAMT EXISTERANDE ID:N.
+//SAMMA ID SPARAS INTE TVÅ GÅNGER.
+
+let createIdArr = (arr) => {
+  let idArr = [+sessionStorage.getItem("userId")];
+  console.log(idArr);
+  arr.forEach((i) => (!idArr.includes(i.id) ? idArr.push(i.id) : null));
+  return idArr;
 };
 
 export let isEmpty = async () => {
@@ -294,6 +316,7 @@ export let userLoggedIn = async () => {
   displayUser.innerText = `${sessionStorage.getItem("user")}`;
   let books = await noAuthGet("/api/books?populate=deep");
   printBooks(books.data, true);
+  checkForSortingMenu();
 };
 
 allBooks.addEventListener("click", async () => {
@@ -304,6 +327,7 @@ allBooks.addEventListener("click", async () => {
 
 myBooks.addEventListener("click", async () => {
   let userInfo = await authGet("/api/users/me?populate=deep");
+  console.log(userInfo);
   if (userInfo.books.length === 0) {
     isEmpty();
   } else {
